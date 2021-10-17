@@ -1,0 +1,3 @@
+"message"     event for client to mcServer and back
+"childmsg"    event for client/mcServer to child and back
+"mastermsg"   event for child to master and back
