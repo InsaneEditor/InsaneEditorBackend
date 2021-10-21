@@ -1,44 +1,54 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-// const { clientConnect, clientDisconnect } = require("managers/masterManager");
-//const { authenticate } = require("managers/authManager");
+const { } = require("./masterManager");
+const { saveClient, deleteClient, getClient } = require('./mysqlManager');
+const { authenticate } = require('./authManager');
 
 const httpServer = createServer();
 const io = new Server(httpServer);
 const connectedClients = {};
 
 //CONFIGS
-const webSocketPort = 3000;
+const webSocketPort = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {
-    //if (!authenticate(socket)) return;
+    if (!authenticate(socket)) return;
+    let clientId = socket.id
+    let clientToken = socket.handshake.auth.token;
 
-    console.info(`Client connected [id=${socket.id}]`);
-    connectedClients[socket.id] = socket;
+    console.log('Client connected ['+clientId+']');
 
-    if(socket.handshake.headers != null){
-        socket.join(socket.handshake.headers.room);
-        socket.send("joined room "+socket.handshake.headers.room);
-        console.log(socket.id+" joined room "+socket.handshake.headers.room);
-    }
+    saveClient(clientToken, clientId);
+    connectedClients[clientId] = socket;
 
-    socket.on("message", (data) => {
-        console.log("msg: "+data);
+    //TODO do group name
+    let roomName = "dbGroupName+dbGroupId";
+    socket.join(roomName);
+    console.log('Client ['+clientId+'] joined '+roomName);
+
+    //event for client/mcServer to child
+    socket.on("serversend", (data) => {
+        socket.broadcast.emit("serverreceive", data);
+    });
+
+    //event for client/mcServer to child
+    socket.on("childmsg", (data) => {
+        console.log("childmsg: "+data);
+    });
+
+    //event for master to child
+    socket.on("mastermsg", (data) => {
+        console.log("mastermsg: "+data);
     });
 
 });
 
 io.on("disconnect", (socket) => {
-    delete connectedClients[socket.id];
-});
+    let clientId = socket.id
+    let clientToken = socket.handshake.auth.token;
 
-app.get('/:client/:message', function (req, res) {
-    if (connectedClients[req.params.client] != null){
-        connectedClients[req.params.client].send(req.params.message);
-        res.send(req.params.message+" send to "+req.params.client);
-    }else{
-        res.send('Could not find client with id: '+req.params.client)
-    }
+    deleteClient(clientToken);
+    delete connectedClients[clientId];
 });
 
 console.log("Socket IO listening on port "+webSocketPort)
