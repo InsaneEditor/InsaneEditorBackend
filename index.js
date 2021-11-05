@@ -1,6 +1,6 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const { } = require("./masterManager");
+const masterManager = require("./masterManager");
 const { saveClient, deleteClient, getClient } = require('./mysqlManager');
 const { authenticate } = require('./authManager');
 
@@ -20,6 +20,7 @@ io.on("connection", (socket) => {
 
     saveClient(clientToken, clientId);
     connectedClients[clientId] = socket;
+    masterManager.masterSocket.send("client connected");
 
     //TODO do group name
     let roomName = "dbGroupName+dbGroupId";
@@ -30,22 +31,12 @@ io.on("connection", (socket) => {
     socket.on("serversend", (data) => {
         socket.broadcast.emit("serverreceive", data);
     });
-
-    //event for client/mcServer to child
-    socket.on("childmsg", (data) => {
-        console.log("childmsg: "+data);
-    });
-
-    //event for master to child
-    socket.on("mastermsg", (data) => {
-        console.log("mastermsg: "+data);
-    });
-
 });
 
 io.on("disconnect", (socket) => {
     let clientId = socket.id
     let clientToken = socket.handshake.auth.token;
+    masterManager.masterSocket.send("client disconnected");
 
     deleteClient(clientToken);
     delete connectedClients[clientId];
