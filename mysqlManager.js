@@ -1,5 +1,8 @@
 var mysql = require('mysql');
 
+const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
+console.log("REGION: "+regionName);
+
 //MYSQL LOGIN
 //host: mysql.fabiandingemans.nl
 //username: InsaneEditor

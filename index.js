@@ -39,7 +39,5 @@ io.on("disconnect", (socket) => {
     delete connectedClients[clientId];
 });
 
-console.log(process.env);
-
 console.log("Socket IO listening on port "+webSocketPort)
 httpServer.listen(webSocketPort);
