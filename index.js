@@ -1,6 +1,5 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const masterManager = require("./masterManager");
 const { saveClient, deleteClient, getClient } = require('./mysqlManager');
 const { authenticate } = require('./authManager');
 

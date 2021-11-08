@@ -22,7 +22,9 @@ function executeQuery(sqlQuery){
 
 //TODO save client
 const saveClient = (clientToken, clientId) => {
-    console.log("MYSQL: Save Client "+clientId);
+    pool.query("UPDATE `servers` SET `socketClientId`='"+clientId+"', `socketServerId`='"+clientId+"' WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+        if (error) throw error;
+    });
 }
 
 //TODO delete client
