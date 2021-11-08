@@ -11,7 +11,7 @@ const pool  = mysql.createPool({
 });
 
 //CONFIGS
-const webSocketPort = 80;
+const webSocketPort = process.env.PORT || 3000;
 const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
 //const regionName = "eu1";
 
