@@ -10,6 +10,8 @@ const pool  = mysql.createPool({
     database        : 'InsaneEditor'
 });
 
+//CONFIGS
+const webSocketPort = 80;
 const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
 //const regionName = "eu1";
 
@@ -17,8 +19,6 @@ const httpServer = createServer();
 const io = new Server(httpServer);
 const connectedClients = {};
 
-//CONFIGS
-const webSocketPort = process.env.PORT || 3000;
 
 io.on("connection", (socket) => {
     if(socket.handshake.auth.type != null){
