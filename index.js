@@ -10,8 +10,8 @@ const pool  = mysql.createPool({
     database        : 'InsaneEditor'
 });
 
-// const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
-const regionName = "eu1";
+const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
+//const regionName = "eu1";
 
 const httpServer = createServer();
 const io = new Server(httpServer);
