@@ -19,7 +19,6 @@ io.on("connection", (socket) => {
 
     saveClient(clientToken, clientId);
     connectedClients[clientId] = socket;
-    masterManager.masterSocket.send("client connected");
 
     //TODO do group name
     let roomName = "dbGroupName+dbGroupId";
@@ -35,11 +34,12 @@ io.on("connection", (socket) => {
 io.on("disconnect", (socket) => {
     let clientId = socket.id
     let clientToken = socket.handshake.auth.token;
-    masterManager.masterSocket.send("client disconnected");
 
     deleteClient(clientToken);
     delete connectedClients[clientId];
 });
+
+console.log(process.env);
 
 console.log("Socket IO listening on port "+webSocketPort)
 httpServer.listen(webSocketPort);
