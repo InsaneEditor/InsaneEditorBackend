@@ -28,9 +28,8 @@ const connectedClients = {};
 io.on("connection", (socket) => {
     if(socket.handshake.auth.type != null){
         if(socket.handshake.auth.type === "client"){
-
             if(socket.handshake.auth.token != null){
-                let clientId = socket.id
+                let clientId = socket.id;
                 let clientToken = socket.handshake.auth.token;
 
                 pool.query("SELECT * FROM `users` WHERE `WebSocketKey`='"+clientToken+"'; ", (error, results, fields) => {
@@ -45,7 +44,7 @@ io.on("connection", (socket) => {
 
                             let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                             socket.join(roomName);
-                            console.log('Client ['+clientId+'] joined '+roomName);
+                            socket.send("Joined room "+roomName);
                         });
 
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as client!"}');
@@ -58,7 +57,6 @@ io.on("connection", (socket) => {
                 socket.send('{"status":"error", "message": "Unauthorized2"}');
                 socket.disconnect();
             }
-
         }else if(socket.handshake.auth.type === "server"){
             if(socket.handshake.auth.token == null){
                 socket.send('{"status":"error", "message": "Unauthorized"}');
@@ -84,7 +82,7 @@ io.on("connection", (socket) => {
 
                             let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                             socket.join(roomName);
-                            console.log('Client ['+clientId+'] joined '+roomName);
+                            socket.send("Joined room "+roomName);
                         });
 
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as a server!", "serverName": "'+server.name+'"}');
@@ -115,11 +113,12 @@ io.on("connection", (socket) => {
         let clientId = socket.id
         let clientToken = socket.handshake.auth.token;
 
-        console.log('Client disconnected ['+clientId+']');
-
-        pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
-            if (error) throw error;
-        });
+        if(socket.handshake.auth.type === "server"){
+            socket.send('{"status":"warning", "message": "Server disconnected"}');
+            pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+                if (error) throw error;
+            });
+        }
 
         delete connectedClients[clientId];
     });
