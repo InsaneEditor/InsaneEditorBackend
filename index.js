@@ -45,7 +45,7 @@ io.on("connection", (socket) => {
                                 socket.join(roomName);
                                 socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
                             }else{
-                                socket.send('{"status":"error", "message": "Could not join room '+roomName+'"}');
+                                socket.send('{"status":"error", "message": "Could not join room"}');
                             }
                         });
 
