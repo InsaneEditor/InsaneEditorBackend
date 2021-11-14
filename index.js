@@ -12,8 +12,8 @@ const pool  = mysql.createPool({
 
 //CONFIGS
 const webSocketPort = process.env.PORT || 3000;
-const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
-//const regionName = "eu1";
+//const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
+const regionName = "eu1";
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -28,7 +28,36 @@ const connectedClients = {};
 io.on("connection", (socket) => {
     if(socket.handshake.auth.type != null){
         if(socket.handshake.auth.type === "client"){
-            socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend!"}');
+
+            if(socket.handshake.auth.token != null){
+                let clientId = socket.id
+                let clientToken = socket.handshake.auth.token;
+
+                pool.query("SELECT * FROM `users` WHERE `WebSocketKey`='"+clientToken+"'; ", (error, results, fields) => {
+                    if (error) throw error;
+                    let user = results[0];
+                    let serverGroupId = socket.handshake.auth.serverGroupId;
+
+                    if(user != null){
+                        pool.query("SELECT * FROM `server_groups` WHERE `id`='"+serverGroupId+"' AND `owner_id`='"+user.id+"'; ", (error, results, fields) => {
+                            if (error) throw error;
+                            let group = results[0];
+
+                            let roomName = group.id+"-"+group.name+"-"+group.owner_id;
+                            socket.join(roomName);
+                            console.log('Client ['+clientId+'] joined '+roomName);
+                        });
+
+                        socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as client!"}');
+                    }else{
+                        socket.send('{"status":"error", "message": "Unauthorized"}');
+                        socket.disconnect();
+                    }
+                });
+            }else{
+                socket.send('{"status":"error", "message": "Unauthorized2"}');
+                socket.disconnect();
+            }
 
         }else if(socket.handshake.auth.type === "server"){
             if(socket.handshake.auth.token == null){
@@ -58,7 +87,7 @@ io.on("connection", (socket) => {
                             console.log('Client ['+clientId+'] joined '+roomName);
                         });
 
-                        socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend!"}');
+                        socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as a server!", "serverName": "'+server.name+'"}');
 
                         console.log('Client connected ['+clientId+']');
                         connectedClients[clientId] = socket;
