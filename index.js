@@ -85,6 +85,7 @@ io.on("connection", (socket) => {
                             socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
                         });
 
+                        socket.broadcast.emit("message", '{"status":"warning", "message": "Server '+server.name+' connected"}');
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as a server!", "serverName": "'+server.name+'"}');
 
                         connectedClients[clientId] = socket;
@@ -113,9 +114,17 @@ io.on("connection", (socket) => {
         let clientToken = socket.handshake.auth.token;
 
         if(socket.handshake.auth.type === "server"){
-            socket.broadcast.emit("message", '{"status":"warning", "message": "Server disconnected"}');
-            pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+            pool.query("SELECT * FROM `servers` WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
                 if (error) throw error;
+                let rowCount = results.length;
+                if(rowCount > 0){
+                    let server = results[0];
+
+                    socket.broadcast.emit("message", '{"status":"warning", "message": "Server '+server.name+' disconnected"}');
+                    pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `id`='"+server.id+"'; ", (error, results, fields) => {
+                        if (error) throw error;
+                    });
+                }
             });
         }
 
