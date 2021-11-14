@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
         let clientToken = socket.handshake.auth.token;
 
         if(socket.handshake.auth.type === "server"){
-            socket.send('{"status":"warning", "message": "Server disconnected"}');
+            socket.broadcast.emit("message", '{"status":"warning", "message": "Server disconnected"}');
             pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
                 if (error) throw error;
             });
