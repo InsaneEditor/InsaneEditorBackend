@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
 
                             let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                             socket.join(roomName);
-                            socket.send("Joined room "+roomName);
+                            socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
                         });
 
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as client!"}');
@@ -82,12 +82,11 @@ io.on("connection", (socket) => {
 
                             let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                             socket.join(roomName);
-                            socket.send("Joined room "+roomName);
+                            socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
                         });
 
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as a server!", "serverName": "'+server.name+'"}');
 
-                        console.log('Client connected ['+clientId+']');
                         connectedClients[clientId] = socket;
                     }else{
                         socket.send('{"status":"error", "message": "Unauthorized"}');
