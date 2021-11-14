@@ -28,23 +28,25 @@ const connectedClients = {};
 io.on("connection", (socket) => {
     if(socket.handshake.auth.type != null){
         if(socket.handshake.auth.type === "client"){
-            if(socket.handshake.auth.token != null){
-                let clientId = socket.id;
-                let clientToken = socket.handshake.auth.token;
-
+            let clientToken = socket.handshake.auth.token;
+            if(clientToken != null && clientToken !== ""){
                 pool.query("SELECT * FROM `users` WHERE `WebSocketKey`='"+clientToken+"'; ", (error, results, fields) => {
                     if (error) throw error;
                     let user = results[0];
                     let serverGroupId = socket.handshake.auth.serverGroupId;
 
-                    if(user != null){
+                    if(user != null && serverGroupId != null && serverGroupId !== ""){
                         pool.query("SELECT * FROM `server_groups` WHERE `id`='"+serverGroupId+"' AND `owner_id`='"+user.id+"'; ", (error, results, fields) => {
                             if (error) throw error;
                             let group = results[0];
 
-                            let roomName = group.id+"-"+group.name+"-"+group.owner_id;
-                            socket.join(roomName);
-                            socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
+                            if(group != null){
+                                let roomName = group.id+"-"+group.name+"-"+group.owner_id;
+                                socket.join(roomName);
+                                socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
+                            }else{
+                                socket.send('{"status":"error", "message": "Could not join room '+roomName+'"}');
+                            }
                         });
 
                         socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as client!"}');
@@ -54,7 +56,7 @@ io.on("connection", (socket) => {
                     }
                 });
             }else{
-                socket.send('{"status":"error", "message": "Unauthorized2"}');
+                socket.send('{"status":"error", "message": "Unauthorized"}');
                 socket.disconnect();
             }
         }else if(socket.handshake.auth.type === "server"){
