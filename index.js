@@ -13,7 +13,7 @@ const pool  = mysql.createPool({
 });
 
 //CONFIGS
-const webSocketPort = process.env.PORT || 3000;
+const webSocketPort = 1609;
 
 //const regionName = process.env.REGION;
 const regionName = "eu";
