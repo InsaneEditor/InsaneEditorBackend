@@ -4,21 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "pack": "pkg ."
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.2",
     "http": "0.0.1-security",
+    "https": "^1.0.0",
     "mysql": "^2.18.1",
-    "socket.io": "^4.3.0",
-    "socket.io-client": "^4.3.2"
-  },
-  "pkg": {
-    "targets": [ "node14-win-x64", "node14-linux-x64"],
-    "outputPath": "builds"
-  },
-  "bin": "./bin/bin.js"
+    "socket.io": "^4.4.0",
+    "socket.io-client": "^4.4.0"
+  }
 }
