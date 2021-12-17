@@ -1,6 +1,8 @@
-const { createServer } = require("http");
-const { Server } = require("socket.io");
 let mysql = require('mysql');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const { Server } = require("socket.io");
 
 const pool  = mysql.createPool({
     connectionLimit : 10,
@@ -12,18 +14,27 @@ const pool  = mysql.createPool({
 
 //CONFIGS
 const webSocketPort = process.env.PORT || 3000;
-//const regionName = process.env.HEROKU_APP_NAME.replace("insaneeditor-", "");
-const regionName = "eu1";
 
-const httpServer = createServer();
-const io = new Server(httpServer, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
+//const regionName = process.env.REGION;
+const regionName = "eu";
 const connectedClients = {};
 
+const httpServer = http.createServer({}, requestHandler);
+
+function requestHandler(req, res){
+    res.writeHead(405, { 'Content-Type': 'text/html' });
+    res.write("<h1>Method Not Allowed</h1>");
+    res.write("<p>A request method is not supported for the requested resource</p>");
+    res.end();
+}
+
+const io = new Server({
+    cors: {
+        origin: "*"
+    },
+    secure: true
+});
+io.attach(httpServer);
 
 io.on("connection", (socket) => {
     if(socket.handshake.auth.type != null){
@@ -134,5 +145,6 @@ io.on("connection", (socket) => {
     });
 });
 
-console.log("Socket IO listening on port "+webSocketPort)
-httpServer.listen(webSocketPort);
+httpServer.listen(webSocketPort, () => {
+    console.log("http server listening on port "+webSocketPort);
+});
