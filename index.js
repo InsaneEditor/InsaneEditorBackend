@@ -7,9 +7,9 @@ const { Server } = require("socket.io");
 const pool  = mysql.createPool({
     connectionLimit : 10,
     host            : 'mysql.fabiandingemans.nl',
-    user            : 'InsaneEditor',
-    password        : '4vgr7mvEry5kZPfZ',
-    database        : 'InsaneEditor'
+    user            : 'insane_main',
+    password        : 'sZ4sKckpwG12',
+    database        : 'insane_main'
 });
 
 //CONFIGS
