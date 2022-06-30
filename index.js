@@ -1,11 +1,12 @@
 let mysql = require('mysql');
-const fs = require('fs');
 const http = require('http');
-const https = require('https');
 const { Server } = require("socket.io");
 
 const pool  = mysql.createPool({
     connectionLimit : 10,
+    connectTimeout  : 60 * 60 * 1000,
+    aquireTimeout   : 60 * 60 * 1000,
+    timeout         : 60 * 60 * 1000,
     host            : process.env.SQL_HOST,
     user            : process.env.SQL_USER,
     password        : process.env.SQL_PASS,
