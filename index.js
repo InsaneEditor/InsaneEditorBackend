@@ -7,10 +7,10 @@ const pool  = mysql.createPool({
     connectTimeout  : 60 * 60 * 1000,
     aquireTimeout   : 60 * 60 * 1000,
     timeout         : 60 * 60 * 1000,
-    host            : process.env.SQL_HOST,
-    user            : process.env.SQL_USER,
-    password        : process.env.SQL_PASS,
-    database        : process.env.SQL_DB
+    host            : process.env.SQL_HOST ?? 'mysql.fabiandingemans.nl',
+    user            : process.env.SQL_USER ?? 'insane_main',
+    password        : process.env.SQL_PASS ?? 'sZ4sKckpwG12',
+    database        : process.env.SQL_DB ?? 'insane_main'
 });
 
 //CONFIGS
@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
                     let serverGroupId = socket.handshake.auth.serverGroupId;
 
                     if(user != null && serverGroupId != null && serverGroupId !== ""){
-                        pool.query("SELECT * FROM `server_groups` WHERE `id`='"+serverGroupId+"' AND `owner_id`='"+user.id+"'; ", (error, results, fields) => {
+                        pool.query("SELECT * FROM `server_groups` WHERE `id`='"+serverGroupId+"' AND `user_id`='"+user.id+"'; ", (error, results, fields) => {
                             if (error) throw error;
                             let group = results[0];
 
