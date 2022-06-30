@@ -62,7 +62,7 @@ io.on("connection", (socket) => {
                                 socket.join(roomName);
                                 socket.send(JSON.stringify({
                                     "status":"success",
-                                    "message": "Joined room '+roomName+'"
+                                    "message": "Joined room "+roomName
                                 }));
                             }else{
                                 socket.send(JSON.stringify({
