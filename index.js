@@ -42,79 +42,130 @@ io.on("connection", (socket) => {
         if(socket.handshake.auth.type === "client"){
             let clientToken = socket.handshake.auth.token;
             if(clientToken != null && clientToken !== ""){
-                pool.query("SELECT * FROM `users` WHERE `WebSocketKey`='"+clientToken+"'; ", (error, results, fields) => {
+                pool.query("SELECT * FROM `users` WHERE `websocket_key`=?;", [
+                    clientToken
+                ], (error, results, fields) => {
                     if (error) throw error;
                     let user = results[0];
                     let serverGroupId = socket.handshake.auth.serverGroupId;
 
                     if(user != null && serverGroupId != null && serverGroupId !== ""){
-                        pool.query("SELECT * FROM `server_groups` WHERE `id`='"+serverGroupId+"' AND `user_id`='"+user.id+"'; ", (error, results, fields) => {
+                        pool.query("SELECT * FROM `server_groups` WHERE `id`=? AND `user_id`=?; ", [
+                            serverGroupId,
+                            user.id
+                        ], (error, results, fields) => {
                             if (error) throw error;
                             let group = results[0];
 
                             if(group != null){
                                 let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                                 socket.join(roomName);
-                                socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
+                                socket.send(JSON.stringify({
+                                    "status":"success",
+                                    "message": "Joined room '+roomName+'"
+                                }));
                             }else{
-                                socket.send('{"status":"error", "message": "Could not join room"}');
+                                socket.send(JSON.stringify({
+                                    "status":"error",
+                                    "message": "Could not join room"
+                                }));
                             }
                         });
 
-                        socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as client!"}');
+                        socket.send(JSON.stringify({
+                            "status":"success",
+                            "message": "Successfully logged into the InsaneEditor backend as client!"
+                        }));
                     }else{
-                        socket.send('{"status":"error", "message": "Unauthorized"}');
+                        socket.send(JSON.stringify({
+                            "status":"error",
+                            "message": "Unauthorized"
+                        }));
                         socket.disconnect();
                     }
                 });
             }else{
-                socket.send('{"status":"error", "message": "Unauthorized"}');
+                socket.send(JSON.stringify({
+                    "status":"error",
+                    "message": "Unauthorized"
+                }));
                 socket.disconnect();
             }
         }else if(socket.handshake.auth.type === "server"){
             if(socket.handshake.auth.token == null){
-                socket.send('{"status":"error", "message": "Unauthorized"}');
+                socket.send(JSON.stringify({
+                    "status":"error",
+                    "message": "Unauthorized"
+                }));
                 socket.disconnect();
             }else{
                 let clientId = socket.id
                 let clientToken = socket.handshake.auth.token;
 
-                pool.query("SELECT * FROM `servers` WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+                pool.query("SELECT * FROM `servers` WHERE `auth_token`=?;", [
+                    clientToken
+                ], (error, results, fields) => {
                     if (error) throw error;
                     let rowCount = results.length;
                     if(rowCount > 0){
                         let server = results[0];
 
                         let currentTime = Math.floor(new Date().getTime() / 1000);
-                        pool.query("UPDATE `servers` SET `socketClientId`='"+clientId+"', `regionName`='"+regionName+"', `lastConnected`='"+currentTime+"' WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+                        pool.query("UPDATE `servers` SET `websocket_clientid`=?, `websocket_region`=?, `websocket_lastconnected`=? WHERE `auth_token`=?;",[
+                            clientId,
+                            regionName,
+                            currentTime,
+                            clientToken
+                        ], (error, results, fields) => {
                             if (error) throw error;
                         });
 
-                        pool.query("SELECT * FROM `server_groups` WHERE `id`='"+server.server_group_id+"'; ", (error, results, fields) => {
+                        pool.query("SELECT * FROM `server_groups` WHERE `id`=?; ", [
+                            server.group_id
+                        ], (error, results, fields) => {
                             if (error) throw error;
                             let group = results[0];
 
                             let roomName = group.id+"-"+group.name+"-"+group.owner_id;
                             socket.join(roomName);
-                            socket.send('{"status":"success", "message": "Joined room '+roomName+'"}');
+                            socket.send(JSON.stringify({
+                                "status":"success",
+                                "message": "Joined room "+roomName
+                            }));
                         });
 
-                        socket.broadcast.emit("message", '{"status":"warning", "message": "Server '+server.name+' connected"}');
-                        socket.send('{"status":"success", "message": "Successfully logged into the InsaneEditor backend as a server!", "serverName": "'+server.name+'"}');
+                        socket.broadcast.emit("message", JSON.stringify({
+                            "status":"warning",
+                            "message": "Server "+server.name+" connected"
+                        }));
+                        socket.send(JSON.stringify({
+                            "status":"success",
+                            "message": "Successfully logged into the InsaneEditor backend as a server!",
+                            "serverName": server.name
+                        }));
 
                         connectedClients[clientId] = socket;
                     }else{
-                        socket.send('{"status":"error", "message": "Unauthorized"}');
+                        socket.send(JSON.stringify({
+                            "status":"error",
+                            "message": "Unauthorized"
+                        }));
                         socket.disconnect();
                     }
                 });
             }
         }else{
-            socket.send('{"status":"error", "message": "Unauthorized"}');
+            socket.send(JSON.stringify({
+                "status":"error",
+                "message": "Unauthorized"
+            }));
             socket.disconnect();
         }
     }else{
-        socket.send('{"status":"error", "message": "Unauthorized"}');
+        socket.send(JSON.stringify({
+            "status":"error",
+            "message": "Unauthorized"
+        }));
         socket.disconnect();
     }
 
