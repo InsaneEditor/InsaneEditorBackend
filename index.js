@@ -6,10 +6,10 @@ const { Server } = require("socket.io");
 
 const pool  = mysql.createPool({
     connectionLimit : 10,
-    host            : 'mysql.fabiandingemans.nl',
-    user            : 'insane_main',
-    password        : 'sZ4sKckpwG12',
-    database        : 'insane_main'
+    host            : process.env.SQL_HOST,
+    user            : process.env.SQL_USER,
+    password        : process.env.SQL_PASS,
+    database        : process.env.SQL_DB
 });
 
 //CONFIGS
