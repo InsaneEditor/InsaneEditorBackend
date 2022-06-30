@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
                             let group = results[0];
 
                             if(group != null){
-                                let roomName = group.id+"-"+group.name+"-"+group.owner_id;
+                                let roomName = group.id+"-"+group.name+"-"+group.user_id;
                                 socket.join(roomName);
                                 socket.send(JSON.stringify({
                                     "status":"success",
@@ -179,14 +179,23 @@ io.on("connection", (socket) => {
         let clientToken = socket.handshake.auth.token;
 
         if(socket.handshake.auth.type === "server"){
-            pool.query("SELECT * FROM `servers` WHERE `authKey`='"+clientToken+"'; ", (error, results, fields) => {
+            pool.query("SELECT * FROM `servers` WHERE `auth_token`=?; ", [
+                clientToken
+            ], (error, results, fields) => {
                 if (error) throw error;
                 let rowCount = results.length;
                 if(rowCount > 0){
                     let server = results[0];
 
-                    socket.broadcast.emit("message", '{"status":"warning", "message": "Server '+server.name+' disconnected"}');
-                    pool.query("UPDATE `servers` SET `socketClientId`=NULL, `regionName`=NULL WHERE `id`='"+server.id+"'; ", (error, results, fields) => {
+                    socket.broadcast.emit("message", JSON.stringify({
+                        "status":"warning",
+                        "message": "Server "+server.name+" disconnected"
+                    }));
+                    pool.query("UPDATE `servers` SET `websocket_clientid`=?, `websocket_region`=? WHERE `id`=?;", [
+                        null,
+                        null,
+                        server.id
+                    ], (error, results, fields) => {
                         if (error) throw error;
                     });
                 }
